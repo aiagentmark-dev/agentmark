@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>agentmark — cryptographic provenance for AI-generated code</title>
+<meta name="description" content="agentmark proves that code traveled through a verified autonomous AI pipeline. Open standard. Cryptographic proof.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #0a0a0a;
+  --bg2:      #111111;
+  --bg3:      #1a1a1a;
+  --border:   #2a2a2a;
+  --text:     #e8e8e8;
+  --muted:    #666;
+  --accent:   #00ff88;
+  --accent2:  #0088ff;
+  --warn:     #ff6b35;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'IBM Plex Sans', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── layout ──────────────────────────────────────────────────── */
+.container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+/* ── nav ─────────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  border-bottom: 1px solid var(--border);
+  background: rgba(10,10,10,0.92);
+  backdrop-filter: blur(8px);
+}
+.nav-inner {
+  max-width: 860px; margin: 0 auto; padding: 0 24px;
+  height: 56px; display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo {
+  font-family: var(--mono);
+  font-size: 15px;
+  color: var(--accent);
+  text-decoration: none;
+  letter-spacing: -0.5px;
+}
+.nav-logo span { color: var(--muted); }
+.nav-links { display: flex; gap: 28px; list-style: none; }
+.nav-links a {
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  text-decoration: none; letter-spacing: 0.5px; text-transform: uppercase;
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--text); }
+
+/* ── hero ────────────────────────────────────────────────────── */
+.hero {
+  padding: 140px 0 80px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: 0; left: -100px; right: -100px; bottom: 0;
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 50%, rgba(0,255,136,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 80% 20%, rgba(0,136,255,0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 11px; color: var(--accent);
+  border: 1px solid rgba(0,255,136,0.25); border-radius: 2px;
+  padding: 4px 10px; margin-bottom: 28px;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.badge::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+h1 {
+  font-family: var(--mono);
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+h1 em { color: var(--accent); font-style: normal; }
+.hero-sub {
+  font-size: 18px; font-weight: 300; color: var(--muted);
+  max-width: 540px; margin-bottom: 40px; line-height: 1.7;
+}
+.hero-sub strong { color: var(--text); font-weight: 400; }
+
+.cta-group { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 13px; font-weight: 500;
+  background: var(--accent); color: #000;
+  padding: 12px 20px; border: none; cursor: pointer;
+  text-decoration: none; border-radius: 2px;
+  transition: opacity 0.15s;
+}
+.btn-primary:hover { opacity: 0.88; }
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
+  padding: 12px 20px; border: 1px solid var(--border);
+  text-decoration: none; border-radius: 2px;
+  background: transparent; transition: border-color 0.15s, color 0.15s;
+}
+.btn-secondary:hover { border-color: #444; color: var(--text); }
+
+/* ── problem stat ─────────────────────────────────────────────── */
+.stat-bar {
+  margin: 60px 0 0;
+  padding: 24px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.stat { text-align: center; flex: 1; min-width: 140px; }
+.stat-num {
+  font-family: var(--mono); font-size: 32px; font-weight: 500;
+  color: var(--accent); display: block; line-height: 1;
+}
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.stat-divider { width: 1px; height: 48px; background: var(--border); }
+
+/* ── commit block ─────────────────────────────────────────────── */
+.commit-demo {
+  margin: 80px 0;
+}
+.commit-demo h2 {
+  font-family: var(--mono); font-size: 13px; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px;
+}
+.commit-box {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+}
+.commit-header {
+  background: var(--bg3); border-bottom: 1px solid var(--border);
+  padding: 10px 16px; display: flex; align-items: center; gap: 10px;
+}
+.commit-dot { width: 10px; height: 10px; border-radius: 50%; }
+.commit-hash { color: var(--muted); font-size: 11px; }
+.commit-author { color: var(--accent2); font-size: 11px; margin-left: auto; }
+.commit-body { padding: 16px; }
+.commit-title { color: var(--text); margin-bottom: 12px; }
+.manifest-block {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px;
+  position: relative;
+}
+.manifest-block pre { overflow-x: auto; }
+.k { color: var(--muted); }
+.v-str { color: #98d4a3; }
+.v-hash { color: var(--accent); }
+.v-req { color: var(--accent2); }
+.v-bool { color: var(--warn); }
+.verified-badge {
+  position: absolute; top: 12px; right: 12px;
+  font-size: 11px; color: var(--accent);
+  border: 1px solid rgba(0,255,136,0.3);
+  padding: 3px 8px; border-radius: 2px; letter-spacing: 0.5px;
+}
+
+/* ── how it works ─────────────────────────────────────────────── */
+.section { padding: 80px 0; border-bottom: 1px solid var(--border); }
+.section-label {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;
+}
+.section h2 {
+  font-family: var(--mono); font-size: 28px; font-weight: 500;
+  letter-spacing: -0.8px; margin-bottom: 12px; line-height: 1.2;
+}
+.section-sub { color: var(--muted); font-size: 16px; margin-bottom: 48px; max-width: 540px; }
+
+.mechanisms { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 600px) { .mechanisms { grid-template-columns: 1fr; } }
+
+.mechanism {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 4px; padding: 24px;
+  transition: border-color 0.15s;
+}
+.mechanism:hover { border-color: #3a3a3a; }
+.mech-num {
+  font-family: var(--mono); font-size: 11px; color: var(--accent);
+  letter-spacing: 1px; margin-bottom: 10px;
+}
+.mech-title {
+  font-family: var(--mono); font-size: 15px; font-weight: 500;
+  margin-bottom: 8px; color: var(--text);
+}
+.mech-body { font-size: 13px; color: var(--muted); line-height: 1.65; }
+.mech-body code {
+  font-family: var(--mono); font-size: 11px; color: var(--accent2);
+  background: rgba(0,136,255,0.08); padding: 1px 5px; border-radius: 2px;
+}
+
+/* ── honest limits ────────────────────────────────────────────── */
+.limits { display: flex; flex-direction: column; gap: 12px; }
+.limit {
+  display: flex; gap: 16px; align-items: flex-start;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 3px; padding: 16px 20px;
+}
+.limit-icon { font-family: var(--mono); font-size: 13px; color: var(--warn); flex-shrink: 0; }
+.limit-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.limit-text strong { color: var(--text); font-weight: 500; }
+
+/* ── use cases ───────────────────────────────────────────────── */
+.use-cases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+@media (max-width: 700px) { .use-cases { grid-template-columns: 1fr; } }
+.use-case {
+  border: 1px solid var(--border); border-radius: 4px; padding: 24px;
+  background: var(--bg2);
+}
+.uc-num { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+.uc-title { font-family: var(--mono); font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.uc-body { font-size: 13px; color: var(--muted); line-height: 1.6; }
+
+/* ── quickstart ──────────────────────────────────────────────── */
+.code-block {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 4px; overflow: hidden; margin: 16px 0;
+}
+.code-header {
+  background: var(--bg3); border-bottom: 1px solid var(--border);
+  padding: 8px 16px; font-family: var(--mono); font-size: 11px;
+  color: var(--muted); display: flex; justify-content: space-between; align-items: center;
+}
+.copy-btn {
+  cursor: pointer; color: var(--muted); background: none; border: none;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.5px;
+  transition: color 0.15s;
+}
+.copy-btn:hover { color: var(--text); }
+.code-block pre {
+  padding: 16px; overflow-x: auto;
+  font-family: var(--mono); font-size: 13px; line-height: 1.7;
+}
+.c-kw { color: #c792ea; }
+.c-fn { color: var(--accent2); }
+.c-str { color: #98d4a3; }
+.c-cm { color: #546e7a; }
+
+/* ── roadmap ─────────────────────────────────────────────────── */
+.roadmap { display: flex; flex-direction: column; gap: 0; }
+.rm-item {
+  display: flex; gap: 24px; align-items: flex-start; padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+}
+.rm-item:last-child { border-bottom: none; }
+.rm-ver {
+  font-family: var(--mono); font-size: 12px; color: var(--accent);
+  min-width: 48px; padding-top: 2px;
+}
+.rm-ver.future { color: var(--muted); }
+.rm-content {}
+.rm-title { font-family: var(--mono); font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+.rm-body { font-size: 13px; color: var(--muted); }
+
+/* ── footer ──────────────────────────────────────────────────── */
+footer {
+  padding: 40px 0; border-top: 1px solid var(--border);
+}
+.footer-inner {
+  max-width: 860px; margin: 0 auto; padding: 0 24px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+}
+.footer-brand { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+.footer-brand a { color: var(--muted); text-decoration: none; }
+.footer-brand a:hover { color: var(--text); }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { font-family: var(--mono); font-size: 12px; color: var(--muted); text-decoration: none; }
+.footer-links a:hover { color: var(--text); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a class="nav-logo" href="/">agentmark<span>.dev</span></a>
+    <ul class="nav-links">
+      <li><a href="#how">how it works</a></li>
+      <li><a href="#quickstart">quickstart</a></li>
+      <li><a href="#roadmap">roadmap</a></li>
+      <li><a href="https://github.com/agentmark-dev/agentmark">github</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="container">
+    <div class="badge">pre-release · spec v0.1</div>
+    <h1>cryptographic provenance<br>for <em>AI-generated</em> code</h1>
+    <p class="hero-sub">
+      agentmark proves that code traveled through a <strong>verified autonomous AI pipeline</strong>
+      with no direct human write path — and provides a cryptographic audit trail for every commit.
+    </p>
+    <div class="cta-group">
+      <a class="btn-primary" href="#quickstart">→ get started</a>
+      <a class="btn-secondary" href="https://github.com/agentmark-dev/agentmark">view spec</a>
+    </div>
+
+    <div class="stat-bar">
+      <div class="stat">
+        <span class="stat-num">42%</span>
+        <div class="stat-label">of production code is AI-generated in 2026</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num">0</span>
+        <div class="stat-label">existing standards verify AI code authorship</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-num">Aug 26</span>
+        <div class="stat-label">EU AI Act Article 50 enforcement deadline</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMMIT DEMO ── -->
+<section style="padding: 80px 0; border-bottom: 1px solid var(--border);">
+  <div class="container">
+    <div class="commit-demo">
+      <h2>// every agentmark-verified commit</h2>
+      <div class="commit-box">
+        <div class="commit-header">
+          <div class="commit-dot" style="background:#ff5f57"></div>
+          <div class="commit-dot" style="background:#febc2e"></div>
+          <div class="commit-dot" style="background:#28c840"></div>
+          <span class="commit-hash">commit a1b2c3d · main</span>
+          <span class="commit-author">karta-coder &lt;karta-coder@karta.build&gt;</span>
+        </div>
+        <div class="commit-body">
+          <div class="commit-title">feat: implement Ed25519 signing function (#42)</div>
+          <div class="manifest-block">
+            <div class="verified-badge">✓ verified</div>
+            <pre><code>```agentmark-manifest
+{
+  <span class="k">"version":</span>              <span class="v-str">"1.0"</span>,
+  <span class="k">"provider":</span>             <span class="v-str">"anthropic"</span>,
+  <span class="k">"model":</span>                <span class="v-str">"claude-sonnet-4-20250514"</span>,
+  <span class="k">"request_id":</span>           <span class="v-req">"req_011CZRtQztYq4T8pfWz8i2p"</span>,
+  <span class="k">"output_hash":</span>          <span class="v-hash">"sha256:a1b2c3d4e5f6789012345678"</span>,
+  <span class="k">"challenge_token":</span>      <span class="v-str">"agentmark-3f9a2b1c4d5e6f7a"</span>,
+  <span class="k">"challenge_echo_verified":</span> <span class="v-bool">true</span>,
+  <span class="k">"pipeline_key":</span>         <span class="v-str">"karta-coder-v1"</span>,
+  <span class="k">"signature":</span>            <span class="v-hash">"TuBWjzVsxEwy33mSgl6dlQDJKQZ..."</span>
+}
+```</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="section-label">// mechanism</div>
+    <h2>four proofs in every commit</h2>
+    <p class="section-sub">agentmark combines cryptographic primitives into a chain of evidence. Each proof is independently verifiable.</p>
+
+    <div class="mechanisms">
+      <div class="mechanism">
+        <div class="mech-num">01 / output_hash</div>
+        <div class="mech-title">no-edit proof</div>
+        <div class="mech-body">
+          <code>sha256(raw_response) == sha256(committed_code)</code><br><br>
+          Proves the code committed matches the LLM's raw HTTP response byte-for-byte. Any edit — even a single space — breaks the hash.
+        </div>
+      </div>
+      <div class="mechanism">
+        <div class="mech-num">02 / challenge_token</div>
+        <div class="mech-title">llm-saw-this proof</div>
+        <div class="mech-body">
+          A unique token is embedded in the task. The LLM must echo it in its response. The echo is covered by <code>output_hash</code>.<br><br>
+          Proves the LLM processed this specific task — not a replay or fabrication.
+        </div>
+      </div>
+      <div class="mechanism">
+        <div class="mech-num">03 / request_id</div>
+        <div class="mech-title">real-api-call signal</div>
+        <div class="mech-body">
+          Every cloud provider returns a unique <code>request_id</code> header per API call. Captured and included in the manifest.<br><br>
+          Proves a real API call happened. Cannot be fabricated without making the actual call.
+        </div>
+      </div>
+      <div class="mechanism">
+        <div class="mech-num">04 / Ed25519 signature</div>
+        <div class="mech-title">pipeline identity proof</div>
+        <div class="mech-body">
+          Every registered pipeline holds an Ed25519 private key. The manifest is signed and the signature verified against the public key in the agentmark registry.<br><br>
+          Proves a registered pipeline made this commit.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HONEST LIMITS ── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">// honest limits</div>
+    <h2>what agentmark cannot prove</h2>
+    <p class="section-sub">We document failure modes explicitly. There are no false guarantees.</p>
+
+    <div class="limits">
+      <div class="limit">
+        <div class="limit-icon">F1</div>
+        <div class="limit-text">
+          <strong>The verbatim human copy attack.</strong>
+          A human who runs the complete agentmark-compliant pipeline (real API call, verbatim commit, valid manifest) is indistinguishable from an agent. This is by design — they have built an agent.
+        </div>
+      </div>
+      <div class="limit">
+        <div class="limit-icon">F2</div>
+        <div class="limit-text">
+          <strong>LLM proxy / gateway breaks output_hash.</strong>
+          Agents must call provider APIs directly. LiteLLM, Bedrock, and Azure proxies transform responses and break hash verification.
+        </div>
+      </div>
+      <div class="limit">
+        <div class="limit-icon">F3</div>
+        <div class="limit-text">
+          <strong>Local models have no request_id.</strong>
+          Ollama, llama.cpp, and self-hosted models cannot provide provider-issued request IDs. Tier 2 trust applies — output_hash and challenge_token only.
+        </div>
+      </div>
+    </div>
+    <p style="margin-top:20px; font-size:13px; color: var(--muted);">
+      Full list of 8 failure modes in <a href="https://github.com/agentmark-dev/agentmark/blob/main/SPEC.md#4-known-failure-modes-and-limitations" style="color: var(--accent2);">SPEC.md §4</a>.
+    </p>
+  </div>
+</section>
+
+<!-- ── USE CASES ── -->
+<section class="section">
+  <div class="container">
+    <div class="section-label">// use cases</div>
+    <h2>who needs this</h2>
+    <div class="use-cases" style="margin-top:32px;">
+      <div class="use-case">
+        <div class="uc-num">01</div>
+        <div class="uc-title">agent-only open source</div>
+        <div class="uc-body">Projects where no human ever commits code. agentmark provides cryptographic proof that property holds — not just a claim.</div>
+      </div>
+      <div class="use-case">
+        <div class="uc-num">02</div>
+        <div class="uc-title">enterprise AI governance</div>
+        <div class="uc-body">Commit-level traceability for the 42% of code AI tools now generate. EU AI Act Article 50 compliance. Audit trails for regulated industries.</div>
+      </div>
+      <div class="use-case">
+        <div class="uc-num">03</div>
+        <div class="uc-title">defense supply chain</div>
+        <div class="uc-body">Procurement-grade verification for AI-generated code in critical systems. Machine-readable provenance for defense contractor compliance.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── QUICKSTART ── -->
+<section class="section" id="quickstart">
+  <div class="container">
+    <div class="section-label">// quickstart</div>
+    <h2>integrate in minutes</h2>
+    <p class="section-sub">Three integration points. No architecture changes required.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>install</span>
+        <button class="copy-btn" onclick="copy(this, 'pip install agentmark')">copy</button>
+      </div>
+      <pre><code>pip install agentmark</code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>wrap your llm call</span>
+      </div>
+      <pre><code><span class="c-kw">import</span> agentmark
+
+<span class="c-cm"># wrap your existing LLM call</span>
+result = agentmark.<span class="c-fn">call</span>(
+    provider=<span class="c-str">"anthropic"</span>,
+    model=<span class="c-str">"claude-sonnet-4-20250514"</span>,
+    prompt=prompt,
+    challenge_token=challenge,  <span class="c-cm"># issued by agentmark GitHub App</span>
+)
+
+<span class="c-cm"># sign and build manifest</span>
+manifest = agentmark.<span class="c-fn">sign</span>(
+    result=result,
+    pipeline_key=<span class="c-str">"my-pipeline-v1"</span>,
+    private_key_bytes=key,
+)
+
+<span class="c-cm"># manifest goes in commit message — done</span></code></pre>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span>add ci gate (.github/workflows/agentmark-verify.yml)</span>
+      </div>
+      <pre><code>- <span class="k">name:</span> <span class="v-str">Verify pipeline provenance</span>
+  <span class="k">uses:</span> <span class="v-str">agentmark-dev/agentmark-action@v1</span>
+  <span class="k">with:</span>
+    <span class="k">strict:</span> <span class="v-bool">true</span></code></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── ROADMAP ── -->
+<section class="section" id="roadmap">
+  <div class="container">
+    <div class="section-label">// roadmap</div>
+    <h2>what's coming</h2>
+
+    <div class="roadmap" style="margin-top:32px;">
+      <div class="rm-item">
+        <div class="rm-ver">v1.0</div>
+        <div class="rm-content">
+          <div class="rm-title">manifest standard + pipeline verification</div>
+          <div class="rm-body">output_hash · challenge_token · Ed25519 signing · Python SDK · GitHub App · GitHub Action · Anthropic + OpenAI support</div>
+        </div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-ver future">v2.0</div>
+        <div class="rm-content">
+          <div class="rm-title">notary service</div>
+          <div class="rm-body">Cross-provider request_id verification. agentmark independently confirms API calls happened. Closes the request_id spoofing gap.</div>
+        </div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-ver future">v3.0</div>
+        <div class="rm-content">
+          <div class="rm-title">TEE attestation</div>
+          <div class="rm-body">Agents run in Gramine/SGX. Hardware attestation in every manifest. Proves no human I/O occurred during execution.</div>
+        </div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-ver future">v4.0</div>
+        <div class="rm-content">
+          <div class="rm-title">provider-native verification</div>
+          <div class="rm-body">Anthropic and OpenAI expose verify_request(request_id) endpoints. Full chain attestation: agent binary → LLM inference → output.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      agentmark — Apache 2.0 · built by <a href="https://clouddon.ai">CloudDon Research</a>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/agentmark-dev/agentmark/blob/main/SPEC.md">spec</a>
+      <a href="https://github.com/agentmark-dev/agentmark">github</a>
+      <a href="mailto:research@clouddon.ai">contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function copy(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied';
+    setTimeout(() => btn.textContent = 'copy', 1800);
+  });
+}
+</script>
+</body>
+</html>

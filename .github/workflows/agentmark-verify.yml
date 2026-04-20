@@ -1,0 +1,37 @@
+name: agentmark verification
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    name: Verify pipeline provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install agentmark
+        run: pip install agentmark
+
+      - name: Verify all commits in PR
+        run: |
+          agentmark verify \
+            --commits ${{ github.event.before }}..${{ github.sha }} \
+            --strict \
+            --registry https://registry.agentmark.dev
+        env:
+          AGENTMARK_REGISTRY_URL: https://registry.agentmark.dev
+
+      - name: Upload verification report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agentmark-report
+          path: agentmark-report.json
