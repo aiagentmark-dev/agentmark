@@ -23,7 +23,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "cryptography>=42.0.0",
+    "cryptography>=46.0.0",  # pinned to safe version — see SECURITY.md
 ]
 
 [project.optional-dependencies]
