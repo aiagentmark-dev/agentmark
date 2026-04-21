@@ -3,7 +3,7 @@
 **Version:** 0.1 (draft)
 **Status:** pre-release
 **Authors:** CloudDon Research
-**Repository:** github.com/agentmark-dev/agentmark (proposed)
+**Repository:** github.com/aiagentmark-dev/agentmark (proposed)
 
 ---
 

@@ -38,8 +38,8 @@ agentmark = "agentmark.cli:main"
 [project.urls]
 Homepage      = "https://agentmark.dev"
 Documentation = "https://agentmark.dev/docs"
-Repository    = "https://github.com/agentmark-dev/agentmark"
-"Bug Tracker" = "https://github.com/agentmark-dev/agentmark/issues"
+Repository    = "https://github.com/aiagentmark-dev/agentmark"
+"Bug Tracker" = "https://github.com/aiagentmark-dev/agentmark/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["agentmark"]
