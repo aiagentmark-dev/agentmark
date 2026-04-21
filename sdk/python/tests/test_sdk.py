@@ -186,31 +186,17 @@ class TestSigning:
 class TestVerifier:
     def test_happy_path(self, valid_manifest, registry):
         from agentmark.verifier import run_verification
-        from agentmark.challenge import ChallengeRegistry
 
         manifest, raw_bytes = valid_manifest
-        # Need a fresh challenge registry that has this challenge
-        ch_reg = ChallengeRegistry()
-        ch_reg._store[manifest.challenge_token] = {
-            "task_ref": "test#1",
-            "used": False,
-            "issued_at": datetime.now(timezone.utc),
-        }
-
-        # Patch the verifier to use our challenge registry
-        from agentmark import verifier as v_module
-        original = v_module.ChallengeRegistry
-
-        class MockRegistry:
-            def verify_and_consume(self, token):
-                return ch_reg.verify_and_consume(token)
-
-        # Inject mock
         result = run_verification(manifest, raw_bytes, registry, strict=True)
-        # Note: challenge check uses a separate instance in verifier
-        # For now verify all other checks pass
+
+        # output_hash, signature, challenge_echo, direct_provider_call
+        # all pass with valid fixture — challenge token registry check
+        # is advisory in v1.0 (no centralized service yet)
         assert result.checks["output_hash"] is True
         assert result.checks["signature"] is True
+        assert result.checks["challenge_echo"] is True
+        assert result.checks["direct_provider_call"] is True
 
     def test_output_hash_mismatch(self, valid_manifest, registry):
         from agentmark.verifier import run_verification

@@ -3,8 +3,6 @@ name: agentmark verification
 on:
   pull_request:
     branches: [main]
-  push:
-    branches: [main]
 
 jobs:
   verify:
@@ -25,9 +23,7 @@ jobs:
           agentmark verify \
             --commits ${{ github.event.before }}..${{ github.sha }} \
             --strict \
-            --registry https://registry.agentmark.dev
-        env:
-          AGENTMARK_REGISTRY_URL: https://registry.agentmark.dev
+            --output agentmark-report.json
 
       - name: Upload verification report
         if: always()
