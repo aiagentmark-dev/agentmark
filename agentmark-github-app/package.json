@@ -1,0 +1,17 @@
+{
+  "name": "agentmark-github-app",
+  "version": "1.0.0",
+  "description": "agentmark GitHub App — Cloudflare Worker",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:prod": "wrangler deploy --env production",
+    "tail": "wrangler tail",
+    "kv:create": "wrangler kv:namespace create AGENTMARK_KV",
+    "kv:create:preview": "wrangler kv:namespace create AGENTMARK_KV --preview"
+  },
+  "devDependencies": {
+    "wrangler": "^4.84.1"
+  }
+}

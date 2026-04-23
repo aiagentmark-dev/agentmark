@@ -1,0 +1,25 @@
+name = "agentmark-app"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# KV namespace for challenge token storage
+[[kv_namespaces]]
+binding = "AGENTMARK_KV"
+id = "12cb150449284ea2afc6592dda6c68ee"
+preview_id = "5987925956a3442e9959ab804ea15447"
+
+# Custom domain
+[env.production]
+name = "agentmark-app"
+routes = [
+  { pattern = "app.agentmark.dev/webhook", zone_name = "agentmark.dev" },
+  { pattern = "app.agentmark.dev/health", zone_name = "agentmark.dev" }
+]
+
+# Environment variables — set secrets via:
+# wrangler secret put GITHUB_APP_ID
+# wrangler secret put GITHUB_PRIVATE_KEY
+# wrangler secret put GITHUB_WEBHOOK_SECRET
+[vars]
+ENVIRONMENT = "production"
