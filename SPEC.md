@@ -3,7 +3,7 @@
 **Version:** 0.1 (draft)
 **Status:** pre-release
 **Authors:** CloudDon Research
-**Repository:** github.com/aiagentmark-dev/agentmark (proposed)
+**Repository:** github.com/agentmark-dev/agentmark (proposed)
 
 ---
 
@@ -43,6 +43,34 @@ The irreducible gap: a human who runs the complete agentmark-compliant pipeline 
 | APP | AI content metadata standard | No pipeline verification, no code focus |
 
 agentmark is designed to complement, not replace, these standards.
+
+### 1.4 Conformance levels
+
+This specification describes the full agentmark protocol as it will exist when feature-complete. Some mechanisms are normative (described as required) but not yet enforced by the reference implementation. Implementers should be aware of the distinction.
+
+**v1.0 — Currently enforced by the reference GitHub App verifier:**
+
+- ✅ output_hash (sha256 match between committed code and raw API response)
+- ✅ challenge_token (single-use token issuance, KV-backed consumption, echo verification)
+- ✅ request_id (format validation against provider patterns, single-use consumption)
+- ✅ Manifest structure (required fields present, well-formed JSON)
+- ✅ Signature presence (signature field exists and is base64-decodable)
+
+**v1.0 — Implemented in the SDK but NOT yet enforced by the verifier:**
+
+- ⚠️ Ed25519 cryptographic signature verification against a registered public key
+- ⚠️ Pipeline registry lookup (`pipeline_key` field is treated as identity metadata, not a cryptographically verified claim)
+
+**v1.1 — Roadmap (next release):**
+
+- Pipeline registration flow (CLI command, registry API)
+- Public key registry (initially: JSON file in agentmark repo; later: registry.agentmark.dev API)
+- Worker-side Ed25519 signature verification against canonical manifest bytes
+- Verification failures: `unregistered_pipeline_key`, `invalid_signature`
+
+**Why this distinction matters:** The cryptographic security in v1.0 comes from three of the four mechanisms working together. challenge_token + output_hash + request_id make the cost of faking AI authorship higher than the cost of being honest. The signature mechanism is honest pipeline-identity metadata in v1.0; it becomes a cryptographic claim in v1.1.
+
+Sections of this specification that describe signature verification as enforced (notably §5.4 and §6) are normative and describe the v1.1 behavior. The v1.0 reference verifier checks signature presence and structure but does not perform the cryptographic verification described.
 
 ---
 

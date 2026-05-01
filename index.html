@@ -441,10 +441,10 @@ footer {
       </div>
       <div class="mechanism">
         <div class="mech-num">04 / Ed25519 signature</div>
-        <div class="mech-title">pipeline identity proof</div>
+        <div class="mech-title">pipeline identity</div>
         <div class="mech-body">
-          Every registered pipeline holds an Ed25519 private key. The manifest is signed and the signature verified against the public key in the agentmark registry.<br><br>
-          Proves a registered pipeline made this commit.
+          Every registered pipeline holds an Ed25519 private key. The manifest is signed with the private key and the signature is recorded in the commit message.<br><br>
+          In <strong>v1.0</strong>, signature presence and structure are checked. Cryptographic verification against a public key registry ships in <strong>v1.1</strong>.
         </div>
       </div>
     </div>
@@ -573,8 +573,15 @@ manifest = agentmark.<span class="c-fn">sign</span>(
       <div class="rm-item">
         <div class="rm-ver">v1.0</div>
         <div class="rm-content">
-          <div class="rm-title">manifest standard + pipeline verification</div>
-          <div class="rm-body">output_hash · challenge_token · Ed25519 signing · Python SDK · GitHub App · GitHub Action · Anthropic + OpenAI support</div>
+          <div class="rm-title">manifest standard · live in production</div>
+          <div class="rm-body">output_hash · challenge_token · request_id · Ed25519 signing in SDK · Python SDK · GitHub App · GitHub Action · Anthropic + OpenAI support</div>
+        </div>
+      </div>
+      <div class="rm-item">
+        <div class="rm-ver future">v1.1</div>
+        <div class="rm-content">
+          <div class="rm-title">pipeline registry + signature enforcement</div>
+          <div class="rm-body">Public key registry, pipeline registration flow, Worker-side Ed25519 signature verification. Closes the "signature is metadata, not a cryptographic claim" gap from v1.0.</div>
         </div>
       </div>
       <div class="rm-item">
