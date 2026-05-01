@@ -4,53 +4,63 @@
 
 agentmark proves that code traveled through a verified autonomous AI pipeline with no direct human write path — and provides a verifiable audit trail for every commit.
 
-[![spec version](https://img.shields.io/badge/spec-v0.1-blue)](SPEC.md)
-[![license](https://img.shields.io/badge/license-Apache%202.0-green)](LICENSE)
-[![status](https://img.shields.io/badge/status-pre--release-orange)](SPEC.md)
+[![spec version](https://img.shields.io/badge/spec-v0.1-blue)](https://github.com/aiagentmark-dev/agentmark/blob/main/SPEC.md)
+[![license](https://img.shields.io/badge/license-Apache%202.0-green)](https://github.com/aiagentmark-dev/agentmark/blob/main/LICENSE)
+[![status](https://img.shields.io/badge/status-v1.0%20live-brightgreen)](https://agentmark.dev)
+[![PyPI](https://img.shields.io/pypi/v/agentmark.svg)](https://pypi.org/project/agentmark/)
 
 ---
 
 ## The problem
 
-30% of enterprise code is now AI-generated. Nobody can prove it.
+[75% of new code at Google is AI-generated](https://blog.google/innovation-and-ai/infrastructure-and-cloud/google-cloud/cloud-next-2026-sundar-pichai/). Nobody can prove which 75%.
 
-Microsoft can't trace which commits in their own repos came from Copilot vs a human. Defense contractors ship AI-generated code to allied governments with no audit trail. Open source projects claiming to be "built entirely by AI agents" have no way to verify that claim.
+When Sundar Pichai shared that number at Google Cloud Next 2026, the follow-on question nobody could answer was: *which code, exactly?* The same gap exists at Snap (65%), Meta (75% target), Anthropic (~100%), and across enterprises industry-wide. [Sonar's 2026 State of Code survey](https://www.sonarsource.com/blog/state-of-code-developer-survey-report-the-current-reality-of-ai-coding) found 42% of code committed by professional developers is AI-generated or assisted.
 
-The EU AI Act (Article 50, enforceable August 2026) requires machine-readable disclosure of AI-generated content. No standard exists for code commits.
+The EU AI Act's Article 50 transparency obligations take effect [August 2, 2026](https://artificialintelligenceact.eu/article/50/) — initially focused on deepfakes and AI-generated content disclosure, with the European Commission [explicitly considering](https://www.kirkland.com/publications/kirkland-alert/2026/02/illuminating-ai-the-eus-first-draft-code-of-practice-on-transparency-for-ai) how to extend marking requirements to AI-generated software code. Defense procurement is asking similar questions today.
+
+No standard exists for code commits. agentmark fills that gap.
 
 ## What agentmark does
 
 agentmark attaches a cryptographically verifiable manifest to every AI-generated commit:
 
 ```
-commit a1b2c3d
+commit 33c5eaf
 Author: karta-coder <karta-coder@karta.build>
-Date:   Thu Apr 17 10:22:47 2026 +0000
+Date:   Tue Apr 29 10:04:31 2026 +0000
 
-    feat: implement Ed25519 signing function (#42)
+    feat: closes #33 — agentmark manifest validator utility
 
     ```agentmark-manifest
     {
       "version": "1.0",
       "provider": "anthropic",
       "model": "claude-sonnet-4-20250514",
-      "request_id": "req_011CZRtQztYq...",
-      "output_hash": "sha256:a1b2c3d4...",
-      "challenge_token": "agentmark-3f9a2b1c4d5e6f7a",
+      "request_id": "req_011CaRQP6TpRJkivT7p4jz25",
+      "output_hash": "sha256:b71ebbd86f4143a3d493e992c618de36...",
+      "challenge_token": "agentmark-a4e6a0ba0602067e",
       "challenge_echo_verified": true,
       "pipeline_key": "karta-coder-v1",
-      "timestamp": "2026-04-17T10:22:47Z",
+      "timestamp": "2026-04-29T10:04:31Z",
       "signature": "TuBWjzVsxEwy33mS..."
     }
     ```
 ```
 
-The manifest proves:
+The manifest proves four things:
 
-- **output_hash** — the committed code matches the raw LLM response, byte-for-byte. No human editing occurred.
-- **challenge_token** — the LLM processed this specific task. The token was in the prompt context and echoed in the response.
-- **request_id** — a real API call happened at the declared provider.
-- **signature** — a registered pipeline identity signed this commit.
+* **output_hash** — the committed code matches the raw LLM response, byte-for-byte. No human editing occurred.
+* **challenge_token** — the LLM processed this specific task. The token was in the prompt context and echoed in the response.
+* **request_id** — a real API call happened at the declared provider.
+* **signature** — a registered pipeline identity signed this commit.
+
+## Live in production
+
+The first end-to-end agentmark-verified PR landed on **April 29, 2026**:
+- [github.com/karta-oss/karta/pull/35](https://github.com/karta-oss/karta/pull/35) — coding pipeline implements an issue, opens PR, agentmark verifies the manifest, CI passes, PR merges autonomously.
+
+Zero human commits in the feature code. Cryptographically verifiable from issue to merge.
 
 ## Quick start
 
@@ -82,6 +92,16 @@ agentmark.verify(manifest, result.raw_bytes)
 
 ## Add to CI
 
+Install the [agentmark GitHub App](https://github.com/apps/agentmark-gh-app) on your repo. The app:
+
+1. Issues a single-use challenge token when an issue is opened
+2. Verifies the manifest when a PR is opened
+3. Posts a green `agentmark/verify` commit status if all four proofs check out
+
+No CI configuration needed — verification happens via webhook.
+
+For an extra layer of in-repo verification:
+
 ```yaml
 # .github/workflows/agentmark-verify.yml
 - name: Verify pipeline provenance
@@ -92,29 +112,29 @@ agentmark.verify(manifest, result.raw_bytes)
 
 ## How it works
 
-See [SPEC.md](SPEC.md) for the full technical specification, including:
+See [SPEC.md](https://github.com/aiagentmark-dev/agentmark/blob/main/SPEC.md) for the full technical specification, including:
 
-- Core mechanisms (output_hash, challenge_token, request_id, signing)
-- Trust tiers (cloud providers vs local models)
-- Known failure modes and limitations
-- Provider SDK integration (Anthropic, OpenAI)
-- Verification algorithm
-- Roadmap (notary service, TEE attestation, provider-native verification)
+* Core mechanisms (output_hash, challenge_token, request_id, signing)
+* Trust tiers (cloud providers vs local models)
+* Known failure modes and limitations
+* Provider SDK integration (Anthropic, OpenAI)
+* Verification algorithm
+* Roadmap (notary service, TEE attestation, provider-native verification)
 
 ## Use cases
 
-**Agent-only open source** — Projects like [Karta](https://karta.build) where no human ever commits code. agentmark provides cryptographic proof of that property.
+**Agent-first open source** — Projects like [Karta](https://github.com/karta-oss/karta) where no human ever commits application code. agentmark provides cryptographic proof of that property.
 
-**Enterprise AI code governance** — Commit-level traceability for the 30% of code that AI tools are now generating.
+**Enterprise AI code governance** — Commit-level traceability for AI-generated code. The missing piece between "we use Copilot" and "here is our AI code audit trail."
 
-**Defense and critical infrastructure** — Supply chain verification for AI-generated code in regulated environments.
+**Defense and critical infrastructure** — Procurement-grade verification for AI-generated code in regulated environments. The question "can you prove this wasn't written by an AI without your knowledge?" now has a technical answer.
 
 ## Relationship to existing standards
 
 agentmark complements, not replaces, existing standards:
 
 | Standard | What it covers | agentmark adds |
-|---|---|---|
+| --- | --- | --- |
 | SLSA | Build pipeline integrity | AI authorship at commit level |
 | SBOM / AI-BOM | Inventory of models used | Which API call produced which code |
 | C2PA | Media provenance | Code-commit equivalent |
@@ -122,32 +142,21 @@ agentmark complements, not replaces, existing standards:
 
 ## Known limitations
 
-agentmark proves pipeline integrity, not autonomous intent. A human running the complete pipeline (real API call, verbatim commit, valid manifest) is indistinguishable from an agent — and this is by design. They have built an agent.
+agentmark proves pipeline integrity, not autonomous intent. A human running the complete pipeline (real API call, verbatim commit, valid manifest) is indistinguishable from an agent — and this is by design. They have built an agent. The philosophical distinction collapses.
 
-Full list of failure modes and limitations in [SPEC.md §4](SPEC.md#4-known-failure-modes-and-limitations).
+What agentmark proves is not "this entity is an AI." It proves: *this change entered through a verified autonomous pipeline with no direct human write path.* That distinction is the version worth building.
 
-## Status
-
-Pre-release. The specification is stable for review. The Python SDK and GitHub App are under development.
-
-- [x] Specification (SPEC.md v0.1)
-- [x] Technical validation (test scripts)
-- [ ] Python SDK (`pip install agentmark`)
-- [ ] GitHub App (challenge issuance)
-- [ ] GitHub Action (CI verification)
-- [ ] Pipeline registry
-- [ ] agentmark.dev landing site
+See [SPEC.md §4](https://github.com/aiagentmark-dev/agentmark/blob/main/SPEC.md) for the full discussion of failure modes and trust tiers.
 
 ## Contributing
 
-agentmark is an open standard. Contributions welcome:
+Contributions welcome. Areas of high interest:
+- Provider integrations beyond Anthropic and OpenAI (Google Gemini, Mistral, AWS Bedrock)
+- SDK implementations in TypeScript, Go, and Rust
+- Framework integrations (LangChain, CrewAI, AutoGen, LlamaIndex)
+- Spec feedback, especially from regulated industries
 
-- Spec feedback and edge cases
-- Provider integrations (Google Gemini, Mistral, Ollama)
-- SDK implementations (TypeScript, Go, Rust)
-- Framework integrations (LangChain, CrewAI, AutoGen)
-
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the contribution process.
 
 ## License
 
@@ -155,4 +164,5 @@ Apache 2.0. See [LICENSE](LICENSE).
 
 ---
 
-*Built by [CloudDon Research](https://clouddon.ai) · [agentmark.dev](https://agentmark.dev)*
+*agentmark is an open standard built by [CloudDon Research](https://clouddon.ai).*
+*[agentmark.dev](https://agentmark.dev) · [SPEC.md](https://github.com/aiagentmark-dev/agentmark/blob/main/SPEC.md) · [PyPI](https://pypi.org/project/agentmark/)*
